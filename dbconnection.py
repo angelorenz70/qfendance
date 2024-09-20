@@ -18,7 +18,7 @@ class MyDatabase:
         print(f'database name: {self.db_name}')
 
     def initialize_table(self):
-        self.mycursor.execute(f"CREATE TABLE IF NOT EXISTS {self.db_name}.{self.table_name} (id INT AUTO_INCREMENT PRIMARY KEY, student_id VARCHAR(255), name VARCHAR(255), time_in TIME, time_out TIME, created_at DATETIME)")
+        self.mycursor.execute(f"CREATE TABLE IF NOT EXISTS {self.db_name}.{self.table_name} (id INT AUTO_INCREMENT PRIMARY KEY, student_id VARCHAR(255), name VARCHAR(255), time_in TIME, break_out TIME, break_in TIME, time_out TIME, created_at DATETIME)")
         print(f'table name: {self.table_name}')
     
     def insert_data(self, id, name):
@@ -46,14 +46,14 @@ class MyDatabase:
         print(current_time.date())
         print(current_time)
 
-    def update_data(self, id, name):
+    def update_data(self, id, name, time_mode):
         current_time = datetime.now()
         time = current_time.time()
 
         # query = f"UPDATE {self.db_name}.{self.table_name} SET time_out = %s WHERE student_id LIKE %s AND name LIKE %s"
         query = f"""
                     UPDATE {self.db_name}.{self.table_name}
-                    SET time_out = %s
+                    SET {time_mode} = %s
                     WHERE student_id = %s
                     AND name = %s
                     AND DATE(created_at) = CURDATE()
