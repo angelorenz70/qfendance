@@ -33,10 +33,12 @@ app.config(bg="skyblue")
 
 # Camera frames
 camera_frame = Frame(app, width=window_width, height=window_height, bg='blue')
-camera_frame.grid(row=0, column=0, padx=10, pady=5)
+camera_frame.grid(row=1, column=0, padx=10, pady=5)
+
+
 
 bottom_section_frame = Frame(app, width=300, height=100, bg='grey')
-bottom_section_frame.grid(row=1, column=0, padx=10, pady=5)
+bottom_section_frame.grid(row=2, column=0, padx=10, pady=5)
 
 # Create a label inside the camera frame to display the video
 camera_label = Label(camera_frame)
@@ -64,7 +66,7 @@ def add_text_to_image(frame, name, id, datetime):
     # Define font and size (you can adjust the path and size as needed)
     font = ImageFont.load_default()
     
-    if camera_mode == 'time_in':
+    if camera_mode == 'time_in':    
         # Define text and position
         text = f"Name: {name}\nID: {id}\nTime In: {datetime.now()}"
     else:
@@ -72,8 +74,23 @@ def add_text_to_image(frame, name, id, datetime):
 
     position = (10, 10)  # Position where text will start on the image
     
+    # Get the bounding box of the text (x0, y0, x1, y1)
+    text_bbox = draw.textbbox((position[0], position[1]), text, font=font)
+
+    # Define background rectangle padding
+    padding = 5
+
+    # Define the rectangle background (adjust size based on text size)
+    background_position = [
+        (text_bbox[0] - padding, text_bbox[1] - padding),
+        (text_bbox[2] + padding, text_bbox[3] + padding)
+    ]
+
+    # Draw the rectangle with the background color (e.g., black)
+    draw.rectangle(background_position, fill=(0, 0, 0))  # Black background
+
     # Draw the text on the image
-    draw.text(position, text, font=font, fill=(255, 255, 255))  # White text
+    draw.text(position, text, font=font, fill=(255, 255, 0))  # change the fill color here
 
     # Convert back to OpenCV format (RGB to BGR)
     frame_with_text = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
@@ -155,21 +172,38 @@ def open_camera():
     # Repeat the same process after 10 milliseconds to refresh the frame
     camera_label.after(10, open_camera)
 
+def update_mode_label():
+    # Update the text in the label to show the current mode (time_in or time_out)
+    # mode_label.config(text=f"{camera_mode.upper() ?? "TIME IN": ""}")
+    mode_label.config(text='TIME IN' if camera_mode.upper() == 'TIME_IN' else 'TIME OUT')
+
+
+
 def stop_camera():
-    global loop_active
+    global camera_mode, loop_active
+    camera_mode = ''
     loop_active = False
     camera_label.configure(image='')
+    # Optional: update the mode label to indicate camera is off
+    mode_label.config(text="")
 
 def open_time_in():
     global camera_mode, loop_active
     camera_mode = 'time_in'
     loop_active = True
+
+    # Update mode label to "time_in"
+    update_mode_label()
+
     open_camera()
 
 def open_time_out():
     global camera_mode, loop_active
     camera_mode = 'time_out'
     loop_active = True
+
+    # Update mode label to "time_out"
+    update_mode_label()
     open_camera()
 
 
@@ -254,6 +288,13 @@ button_stop = tk.Button(
     wraplength=100
 )
 button_stop.grid(row=2,column=0)
+
+
+# Add a label to display the current mode (time_in or time_out)
+mode_label = Label(app, text="", font=("Arial", 16), bg='skyblue')
+mode_label.grid(row=0, column=0, padx=10, pady=10)
+
+
 
 # Bind the app with Escape keyboard to quit app whenever pressed
 app.bind('<Escape>', lambda e: app.quit())
