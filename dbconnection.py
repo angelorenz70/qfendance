@@ -47,10 +47,13 @@ class MyDatabase:
         self.mydb.commit()
 
     def update_data(self, student_id, name, time_mode):
+        print('ENTER UPDATE DATA FUCTION')
         current_time = datetime.now()
         time = current_time.time()
+        print("TIME MODE at UPDATE DATA FUNCTION => ", time_mode)
 
         if not self.if_done(student_id=student_id, date=current_time.date(), time_mode=time_mode):
+            print("ENTER NOT IF EXIST 1")
             # query = f"UPDATE {self.db_name}.{self.table_name} SET time_out = %s WHERE student_id LIKE %s AND name LIKE %s"
             query = f"""
                         UPDATE {self.db_name}.{self.table_name}
@@ -66,6 +69,7 @@ class MyDatabase:
             # print(self.if_done(student_id=student_id, date=datetime.now().date()), time_mode)
             print(f'UPDATE {time_mode}')
         else:
+            print("ENTER IF EXIST 1")
             # print('naabot ko dria')
             print(f'CREATE {time_mode}')
             self.insert_data(student_id, name,time_mode)
@@ -98,10 +102,12 @@ class MyDatabase:
                     
                     if_exist = self.if_exist(student_id=student_id, table=self.table_name1)                
                     if if_exist:
+                        print('-------------------1')
                         # print(f'student is exist in table {self.table_name1} - {undertime}')
                         self.update_to_table_students_users(student_id=student_id, undertime=undertime)
                         self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
                     else:
+                        print('-------------------2')
                         # print(f'student is not exist in table {self.table_name1}')
                         self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name1)
                         self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
@@ -110,10 +116,12 @@ class MyDatabase:
                     print('if exist = ',if_exist )  
                     undertime = 0             
                     if if_exist:
+                        print('-------------------3')
                         # print(f'student is exist in table {self.table_name1} - {undertime}')
                         self.update_to_table_students_users(student_id=student_id, undertime=undertime)
                         self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
                     else:
+                        print('-------------------4')
                         # print(f'student is not exist in table {self.table_name1}')
                         self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name1)
                         self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
@@ -133,15 +141,18 @@ class MyDatabase:
                 print(remarks)
 
                 if if_exist:
+                    print('-------------------5')
                     # print(f'student is exist in table {self.table_name1} - {undertime}')
                     self.update_to_table_students_users(student_id=student_id, undertime=undertime)
                     self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2, remarks=remarks)
                 else:
+                    print('-------------------6')
                     # print(f'student is not exist in table {self.table_name1}')
                     self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name1)
                     self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2, remarks=remarks)
 
     def get_one_entry_attendance(self, student_id, date):
+        print('ENTER GET ONE ENTRY ATTENDACE FUNCTION')
         # query = f'SELECT * FROM {self.db_name}.{self.table_name} WHERE student_id = {student_id} and created_at = {date}'
         query = f"""
                     SELECT * FROM {self.db_name}.{self.table_name}
@@ -176,7 +187,7 @@ class MyDatabase:
                     """
             self.mycursor.execute(query, (student_id ,name, undertime))
             
-        if table == self.table_name2 and remarks is None:
+        elif table == self.table_name2 and remarks is None:
             query = f"""
                         INSERT INTO {self.db_name}.{self.table_name2} (student_id, name, undertime, date)
                         VALUES (%s, %s, %s, %s)
@@ -202,10 +213,13 @@ class MyDatabase:
         self.mydb.commit()
         
     def if_done(self, student_id, date, time_mode):
+        print('TIME MODE at IF DONE FUNCTION => ', time_mode)
+        
 
         result = self.get_one_entry_attendance(student_id=student_id, date=date)
 
-        print('time-mode ', result)
+        print('result', result)
+        print(result is not None)
 
         if result is not None:
             if time_mode == 'time_in':
@@ -218,6 +232,7 @@ class MyDatabase:
                 return result[6] is not None
             
         if not self.if_exist(student_id, self.table_name1):
+            print('ENTER NOT IF EXIST 2')
             return True
 
     def check_duplicate(self):
