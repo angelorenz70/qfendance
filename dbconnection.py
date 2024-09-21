@@ -29,6 +29,7 @@ class MyDatabase:
         print(f'table name: {self.table_name2}')
     
     def insert_data(self, id, name, time_mode):
+        print('ENTER INSERT DATA')
         current_time = datetime.now()
         time = current_time.time()
 
