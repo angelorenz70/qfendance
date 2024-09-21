@@ -10,9 +10,9 @@ from save_data import store_data, extract_id_and_name
 from dbconnection import MyDatabase
 from tools import Button, SaveImage
 
-db_connection = MyDatabase('localhost', 'root', 'password', 'student_attendace_dtr', 'students_dtr')
+db_connection = MyDatabase('localhost', 'root', 'password', 'student_attendace_dtr', 'students_dtr', 'student_users', 'under_time')
 db_connection.initialize_database()
-db_connection.initialize_table()
+db_connection.initialize_tables()
 
 # Define a video capture object
 vid = cv2.VideoCapture(0)
@@ -78,23 +78,26 @@ def open_camera():
             global_name = name
             if camera_mode == 'time_in':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
-                db_connection.insert_data(id, name)
+                id, name = extract_id_and_name(current_name)
+                db_connection.insert_data(id, name, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
 
             elif camera_mode == 'time_out':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
+                id, name = extract_id_and_name(current_name)
                 db_connection.update_data(id, name, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
+                db_connection.calculate_undertime(global_id, datetime.now().date())
+
             elif camera_mode == 'break_out':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
+                id, name = extract_id_and_name(current_name)
                 db_connection.update_data(id, name, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
+
             elif camera_mode == 'break_in':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
+                id, name = extract_id_and_name(current_name)
                 db_connection.update_data(id, name, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
 
