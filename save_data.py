@@ -14,4 +14,4 @@ def store_data(id, name):
 
 def extract_id_and_name(data):
     data = data.split(',')
-    return data[0], data[1] #id and name
+    return data[0], data[1], data[2]#id, name, graduated (1) or not (0)

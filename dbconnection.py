@@ -20,7 +20,7 @@ class MyDatabase:
         print(f'database name: {self.db_name}')
 
     def initialize_tables(self):
-        self.mycursor.execute(f"CREATE TABLE IF NOT EXISTS {self.db_name}.{self.table_name} (id INT AUTO_INCREMENT PRIMARY KEY, student_id VARCHAR(255), name VARCHAR(255), time_in TIME, break_out TIME, break_in TIME, time_out TIME, created_at DATETIME)")
+        self.mycursor.execute(f"CREATE TABLE IF NOT EXISTS {self.db_name}.{self.table_name} (id INT AUTO_INCREMENT PRIMARY KEY, student_id VARCHAR(255), name VARCHAR(255), graduated INT , time_in TIME, break_out TIME, break_in TIME, time_out TIME, created_at DATETIME)")
         self.mycursor.execute(f"CREATE TABLE IF NOT EXISTS {self.db_name}.{self.table_name1} (id INT AUTO_INCREMENT PRIMARY KEY, student_id VARCHAR(255),  name VARCHAR(255), undertime DECIMAL(10,2))")
         self.mycursor.execute(f"CREATE TABLE IF NOT EXISTS {self.db_name}.{self.table_name2} (id INT AUTO_INCREMENT PRIMARY KEY, student_id VARCHAR(255),  name VARCHAR(255), undertime DECIMAL(10,2), date DATE, remarks VARCHAR(255))")
         print('-------Tables Created---------')
@@ -28,15 +28,17 @@ class MyDatabase:
         print(f'table name: {self.table_name1}')
         print(f'table name: {self.table_name2}')
     
-    def insert_data(self, id, name, time_mode):
+    def insert_data(self, id, name, graduated, time_mode):
         print('ENTER INSERT DATA')
+        print(id, name, graduated, time_mode)
+
         current_time = datetime.now()
         time = current_time.time()
 
         # query = f"INSERT IGNORE INTO {self.db_name}.{self.table_name} (id, name, time_in, created_at) VALUES (%s, %s, %s, %s)"        
         query = f"""
-                    INSERT INTO {self.db_name}.{self.table_name} (student_id, name, {time_mode}, created_at)
-                    SELECT %s, %s, %s, %s
+                    INSERT INTO {self.db_name}.{self.table_name} (student_id, name, graduated, {time_mode}, created_at)
+                    SELECT %s, %s, %s, %s, %s
                     FROM DUAL
                     WHERE NOT EXISTS (
                         SELECT 1 FROM {self.db_name}.{self.table_name} 
@@ -44,10 +46,10 @@ class MyDatabase:
                     )
                 """
         
-        self.mycursor.execute(query, (id, name, time, current_time, id))
+        self.mycursor.execute(query, (id, name, graduated, time, current_time, id))
         self.mydb.commit()
 
-    def update_data(self, student_id, name, time_mode):
+    def update_data(self, student_id, name, graduated, time_mode):
         print('ENTER UPDATE DATA FUCTION')
         current_time = datetime.now()
         time = current_time.time()
@@ -73,7 +75,7 @@ class MyDatabase:
             print("ENTER IF EXIST 1")
             # print('naabot ko dria')
             print(f'CREATE {time_mode}')
-            self.insert_data(student_id, name,time_mode)
+            self.insert_data(student_id, name,graduated,time_mode)
 
 
     def calculate_undertime(self, student_id, date):
