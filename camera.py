@@ -9,10 +9,14 @@ from qrcode_scanner import decoder
 from save_data import store_data, extract_id_and_name
 from dbconnection import MyDatabase
 from tools import Button, SaveImage
+from face_detection import FaceDetection
 
 db_connection = MyDatabase('localhost', 'root', 'password', 'student_attendace_dtr', 'students_dtr', 'student_users', 'under_time')
 db_connection.initialize_database()
 db_connection.initialize_tables()
+
+#import model
+face_detection = FaceDetection()
 
 # Define a video capture object
 vid = cv2.VideoCapture(0)
@@ -65,42 +69,48 @@ def open_camera():
     ret, frame = vid.read()
 
     if ret:
-        frame, barcode_data = decoder(frame)
+        face_detected = face_detection.detect(frame)
+        if face_detected:
+            #for face
+            # detected = face_detection.detect(frame)
+            frame, barcode_data = decoder(frame)
 
-        # frame_with_text = add_text_to_image(frame, name, id, datetime.now())
-        # Store the latest frame globally
-        current_frame = frame
+            # frame_with_text = add_text_to_image(frame, name, id, datetime.now())
+            # Store the latest frame globally
+            current_frame = frame
+            current_name = str(barcode_data)
 
-        current_name = str(barcode_data)
-        if len(current_name) > 0:
-            id, name, graduated= extract_id_and_name(current_name)
-            print(id, name, graduated)
             
-            global_id = id
-            global_name = name
-            if camera_mode == 'time_in':
-                messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
-                db_connection.insert_data(id, name, graduated, camera_mode)
-                SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
-            elif camera_mode == 'time_out':
-                messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
-                db_connection.update_data(id, name,graduated, camera_mode)
-                SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
-                db_connection.calculate_undertime(global_id, datetime.now().date())
+            if len(current_name) > 0:
+                print('ENTER QRCODE AND FACE DETECTED')
+                id, name, graduated= extract_id_and_name(current_name)
+                print(id, name, graduated)
+                
+                global_id = id
+                global_name = name
+                if camera_mode == 'time_in':
+                    messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
+                    # id, name = extract_id_and_name(current_name)
+                    db_connection.insert_data(id, name, graduated, camera_mode)
+                    SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
+                elif camera_mode == 'time_out':
+                    messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
+                    # id, name = extract_id_and_name(current_name)
+                    db_connection.update_data(id, name,graduated, camera_mode)
+                    SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
+                    db_connection.calculate_undertime(global_id, datetime.now().date())
 
-            elif camera_mode == 'break_out':
-                messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
-                db_connection.update_data(id, name,graduated, camera_mode)
-                SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
+                elif camera_mode == 'break_out':
+                    messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
+                    # id, name = extract_id_and_name(current_name)
+                    db_connection.update_data(id, name,graduated, camera_mode)
+                    SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
 
-            elif camera_mode == 'break_in':
-                messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                # id, name = extract_id_and_name(current_name)
-                db_connection.update_data(id, name,graduated, camera_mode)
-                SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
+                elif camera_mode == 'break_in':
+                    messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
+                    # id, name = extract_id_and_name(current_name)
+                    db_connection.update_data(id, name,graduated, camera_mode)
+                    SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
 
 
         opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
