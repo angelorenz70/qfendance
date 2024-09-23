@@ -73,32 +73,33 @@ def open_camera():
 
         current_name = str(barcode_data)
         if len(current_name) > 0:
-            id, name = extract_id_and_name(current_name)
+            id, name, graduated= extract_id_and_name(current_name)
+            print(id, name, graduated)
+            
             global_id = id
             global_name = name
             if camera_mode == 'time_in':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                id, name = extract_id_and_name(current_name)
-                db_connection.insert_data(id, name, camera_mode)
+                # id, name = extract_id_and_name(current_name)
+                db_connection.insert_data(id, name, graduated, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
-
             elif camera_mode == 'time_out':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                id, name = extract_id_and_name(current_name)
-                db_connection.update_data(id, name, camera_mode)
+                # id, name = extract_id_and_name(current_name)
+                db_connection.update_data(id, name,graduated, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
                 db_connection.calculate_undertime(global_id, datetime.now().date())
 
             elif camera_mode == 'break_out':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                id, name = extract_id_and_name(current_name)
-                db_connection.update_data(id, name, camera_mode)
+                # id, name = extract_id_and_name(current_name)
+                db_connection.update_data(id, name,graduated, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
 
             elif camera_mode == 'break_in':
                 messagebox.showinfo("information", f'YOU ARE: {current_name} : {datetime.now()}') 
-                id, name = extract_id_and_name(current_name)
-                db_connection.update_data(id, name, camera_mode)
+                # id, name = extract_id_and_name(current_name)
+                db_connection.update_data(id, name,graduated, camera_mode)
                 SaveImage().save(current_frame, current_name, global_id, global_name, camera_mode)
 
 
