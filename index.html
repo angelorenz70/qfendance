@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        video {
+            border: 2px solid #000;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Live Camera Stream</h1>
+    <video id="video" width="600" height="400" autoplay></video>
+
+    <script>
+        // Select the video element
+        const video = document.getElementById('video');
+
+        // Request access to the camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                // Set the video element's source to the webcam stream
+                video.srcObject = stream;
+            })
+            .catch((err) => {
+                console.error("Error accessing the camera: " + err);
+            });
+    </script>
+
+</body>
+</html>
+ 

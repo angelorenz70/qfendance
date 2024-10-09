@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Attendance </title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        #camera-section {
+            flex: 1;
+            margin-right: 20px;
+            text-align: center;
+        }
+        #recent-attendees {
+            flex: 1;
+        }
+        #status-text {
+            margin: 20px 0;
+        }
+        button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="camera-section">
+        <h1>QFENDANCE</h1>
+        <img src="/video_feed" id="camera-feed" alt="Camera Feed" style="width: 100%; max-width: 400px;">
+        <h2 id="status-text">check in</h2>
+        <div>
+            <button class="btn btn-primary" onclick="setMode('check_in')">CHECK IN</button>
+            <button class="btn btn-primary" onclick="setMode('break_out')">BREAK OUT</button>
+            <button class="btn btn-primary" onclick="setMode('break_in')">BREAK IN</button>
+            <button class="btn btn-primary" onclick="setMode('check_out')">CHECK OUT</button>
+        </div>
+    </div>
+
+    <div id="recent-attendees">
+        <h2 class="text-center">Latest Time Transaction</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Check In</th>
+                    <th>Break Out</th>
+                    <th>Break In</th>
+                    <th>Check Out</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry[1] }}</td>
+                    <!-- <td>{{ entry[2] }}</td> -->
+                    <td>
+                        <a href="{{ entry[8] }}" target="_blank">{{ entry[2] }}</a>
+                    </td>
+                    <td>
+                        <a href="{{ entry[9] }}" target="_blank">{{ entry[3] }}</a>
+                    </td>
+                    <td>
+                        <a href="{{ entry[10] }}" target="_blank">{{ entry[4] }}</a>
+                    </td>
+                    <td>
+                        <a href="{{ entry[11] }}" target="_blank">{{ entry[5] }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button class="btn btn-primary" onclick="setMode('check_dtr')">CHECK DTR</button>
+    </div>
+
+    <script>
+        // Function to update the mode and display it
+        function setMode(mode) {
+            fetch(`/set_mode/${mode}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("status-text").innerText = data.current_mode;
+                })
+                .catch(error => {
+                    console.error('Error setting mode:', error);
+                });
+        }
+
+        // Periodically check for the flash message
+        setInterval(() => {
+            fetch('/flash_message')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "Success") {
+                        alert("Attendance: "+ data.time_mode + " " + data.date + " " + data.time + " ID: " + data.qrcode_data);
+                        // location.reload();
+                        refreshTable();
+                    }
+                    
+                })
+                .catch(error => console.error('Error fetching flash message:', error));
+        }, 100);  // Check every second
+
+        function refreshTable() {
+            fetch('/update_table')
+                .then(response => response.text())
+                .then(html => {
+                    document.querySelector("tbody").innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error updating table:', error);
+                });
+        }       
+
+    </script>
+</body>
+</html>

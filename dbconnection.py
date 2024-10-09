@@ -114,6 +114,7 @@ class MyDatabase:
         else:
             # If the time_mode field already has a value, do nothing
             print(f"{time_mode} already recorded, no update needed.")
+            
 
 
     def calculate_undertime(self, student_id, date):
