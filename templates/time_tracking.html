@@ -1,0 +1,9 @@
+{% for entry in entries %}
+<tr>
+    <td>{{ entry[1] }}</td>
+    <td><a href="{{ entry[8] }}" target="_blank">{{ entry[2] }}</a></td>
+    <td><a href="{{ entry[9] }}" target="_blank">{{ entry[3] }}</a></td>
+    <td><a href="{{ entry[10] }}" target="_blank">{{ entry[4] }}</a></td>
+    <td><a href="{{ entry[11] }}" target="_blank">{{ entry[5] }}</a></td>
+</tr>
+{% endfor %}

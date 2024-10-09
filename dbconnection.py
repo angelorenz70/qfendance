@@ -49,110 +49,131 @@ class MyDatabase:
         self.mycursor.execute(query, (id, name, graduated, time, current_time, id))
         self.mydb.commit()
 
+    # def update_data(self, student_id, name, graduated, time_mode):
+    #     print('ENTER UPDATE DATA FUCTION')
+    #     current_time = datetime.now()
+    #     time = current_time.time()
+    #     print("TIME MODE at UPDATE DATA FUNCTION => ", time_mode)
+
+    #     if not self.if_done(student_id=student_id, date=current_time.date(), time_mode=time_mode):
+    #         print("ENTER NOT IF EXIST 1")
+    #         # query = f"UPDATE {self.db_name}.{self.table_name} SET time_out = %s WHERE student_id LIKE %s AND name LIKE %s"
+    #         query = f"""
+    #                     UPDATE {self.db_name}.{self.table_name}
+    #                     SET {time_mode} = %s
+    #                     WHERE student_id = %s
+    #                     AND name = %s
+    #                     AND DATE(created_at) = CURDATE()
+    #                 """
+
+    #         self.mycursor.execute(query, (time, student_id, name))
+    #         self.mydb.commit()
+    #         print(self.mycursor.rowcount, "record(s) affected")
+    #         # print(self.if_done(student_id=student_id, date=datetime.now().date()), time_mode)
+    #         print(f'UPDATE {time_mode}')
+    #     else:
+    #         print("ENTER IF EXIST 1")
+    #         # print('naabot ko dria')
+    #         print(f'CREATE {time_mode}')
+    #         self.insert_data(student_id, name,graduated,time_mode)
     def update_data(self, student_id, name, graduated, time_mode):
-        print('ENTER UPDATE DATA FUCTION')
+        print('ENTER UPDATE DATA FUNCTION')
         current_time = datetime.now()
         time = current_time.time()
         print("TIME MODE at UPDATE DATA FUNCTION => ", time_mode)
 
-        if not self.if_done(student_id=student_id, date=current_time.date(), time_mode=time_mode):
-            print("ENTER NOT IF EXIST 1")
-            # query = f"UPDATE {self.db_name}.{self.table_name} SET time_out = %s WHERE student_id LIKE %s AND name LIKE %s"
-            query = f"""
-                        UPDATE {self.db_name}.{self.table_name}
-                        SET {time_mode} = %s
-                        WHERE student_id = %s
-                        AND name = %s
-                        AND DATE(created_at) = CURDATE()
-                    """
+        # Check if the student has already logged the time for this mode on the current date
+        query_check = f"""
+            SELECT {time_mode} 
+            FROM {self.db_name}.{self.table_name} 
+            WHERE student_id = %s 
+            AND name = %s 
+            AND DATE(created_at) = CURDATE()
+        """
+        self.mycursor.execute(query_check, (student_id, name))
+        result = self.mycursor.fetchone()
 
-            self.mycursor.execute(query, (time, student_id, name))
+        if result is None:
+            # No record for the day exists, create a new one
+            print("No record for today, inserting new record.")
+            self.insert_data(student_id, name, graduated, time_mode)
+        elif result[0] is None:
+            # If the time_mode field is NULL, update the time
+            print(f"No {time_mode} recorded, updating the time.")
+            query_update = f"""
+                UPDATE {self.db_name}.{self.table_name}
+                SET {time_mode} = %s
+                WHERE student_id = %s
+                AND name = %s
+                AND DATE(created_at) = CURDATE()
+            """
+            self.mycursor.execute(query_update, (time, student_id, name))
             self.mydb.commit()
             print(self.mycursor.rowcount, "record(s) affected")
-            # print(self.if_done(student_id=student_id, date=datetime.now().date()), time_mode)
-            print(f'UPDATE {time_mode}')
+            print(f'Updated {time_mode}')
         else:
-            print("ENTER IF EXIST 1")
-            # print('naabot ko dria')
-            print(f'CREATE {time_mode}')
-            self.insert_data(student_id, name,graduated,time_mode)
+            # If the time_mode field already has a value, do nothing
+            print(f"{time_mode} already recorded, no update needed.")
+            
 
 
     def calculate_undertime(self, student_id, date):
         result = self.get_one_entry_attendance(student_id=student_id, date=date)
         print(result)
+
         if result is not None:    
             name = result[2]
-            time_in = result[3]
-            break_out = result[4]
-            break_in = result[5]
-            time_out = result[6]
+            time_in = result[4]
+            break_out = result[5]
+            break_in = result[6]
+            time_out = result[7]
 
-            #check if there is a none in time_in, break_out, break_int then the undertime is 4hours
-            if time_in != None and break_out != None and break_in != None and time_out != None:
-                # Calculate work duration (time_out - break_in) + (break_out - time_in)
+            if time_in is not None and break_out is not None and break_in is not None and time_out is not None:
+                # Calculate work duration (morning + afternoon)
                 morning_hours = break_out - time_in
                 afternoon_hours = time_out - break_in
                 total_work_time = morning_hours + afternoon_hours
 
                 # Convert total work time to hours
                 total_hours = total_work_time.total_seconds() / 3600
+                print(f"Total Hours Worked: {total_hours:.2f}")
 
-                # Check if it is less than 4 hours
-                if round(total_hours, 2) < 4.00:
-                    undertime = float(4 - total_hours)
-                    undertime = round(undertime, 2)
-                    
-                    if_exist = self.if_exist(student_id=student_id, table=self.table_name1)                
-                    if if_exist:
-                        print('-------------------1')
-                        # print(f'student is exist in table {self.table_name1} - {undertime}')
-                        self.update_to_table_students_users(student_id=student_id, undertime=undertime)
-                        self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
-                    else:
-                        print('-------------------2')
-                        # print(f'student is not exist in table {self.table_name1}')
-                        self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name1)
-                        self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
-                else:
-                    if_exist = self.if_exist(student_id=student_id, table=self.table_name1) 
-                    print('if exist = ',if_exist )  
-                    undertime = 0             
-                    if if_exist:
-                        print('-------------------3')
-                        # print(f'student is exist in table {self.table_name1} - {undertime}')
-                        self.update_to_table_students_users(student_id=student_id, undertime=undertime)
-                        self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
-                    else:
-                        print('-------------------4')
-                        # print(f'student is not exist in table {self.table_name1}')
-                        self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name1)
-                        self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
+                # Check if work time is less than 4 hours
+                undertime = max(0, 4.0 - round(total_hours, 2))
 
-            else:
-                if_exist = self.if_exist(student_id=student_id, table=self.table_name1)   
-                undertime = 4         
-                remarks = []
-                if time_in == None:
-                    remarks.append('time in')
-                if break_out == None:
-                    remarks.append('break out')
-                if break_in == None:
-                    remarks.append('break in')
-                remarks = ' , '.join(remarks)
-
-                print(remarks)
-
+                if_exist = self.if_exist(student_id=student_id, table=self.table_name1)
                 if if_exist:
-                    print('-------------------5')
-                    # print(f'student is exist in table {self.table_name1} - {undertime}')
                     self.update_to_table_students_users(student_id=student_id, undertime=undertime)
-                    self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2, remarks=remarks)
                 else:
-                    print('-------------------6')
-                    # print(f'student is not exist in table {self.table_name1}')
                     self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name1)
-                    self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2, remarks=remarks)
+                self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2)
+            
+            else:
+                # Some time logs are missing
+                remarks = []
+                remarks.append('Missing')
+                if time_in is None:
+                    remarks.append('time in')
+                if break_out is None:
+                    remarks.append('break out')
+                if break_in is None:
+                    remarks.append('break in')
+                if time_out is None:
+                    remarks.append('time out')
+
+                remarks_str = ', '.join(remarks)
+                print(f"Missing time logs: {remarks_str}")
+
+                # Default undertime to 4 hours if logs are incomplete
+                undertime = 4.0
+
+                if_exist = self.if_exist(student_id=student_id, table=self.table_name1)
+                if if_exist:
+                    self.update_to_table_students_users(student_id=student_id, undertime=undertime)
+                else:
+                    self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name1)
+                self.insert_undertime_to_table(student_id=student_id, name=name, undertime=undertime, table=self.table_name2, remarks=remarks_str)
+
 
     def get_one_entry_attendance(self, student_id, date):
         print('ENTER GET ONE ENTRY ATTENDACE FUNCTION')
@@ -224,15 +245,15 @@ class MyDatabase:
         print('result', result)
         print(result is not None)
 
-        if result is not None:
-            if time_mode == 'time_in':
-                return result[3] is not None
-            elif time_mode == 'break_out':
-                return result[4] is not None
-            elif time_mode == 'break_in':
-                return result[5] is not None
-            elif time_mode == 'time_out':
-                return result[6] is not None
+        # if result is not None:
+        if time_mode == 'time_in':
+            return result[3] is not None
+        elif time_mode == 'break_out':
+            return result[4] is not None
+        elif time_mode == 'break_in':
+            return result[5] is not None
+        elif time_mode == 'time_out':
+            return result[6] is not None
             
         if not self.if_exist(student_id, self.table_name1):
             print('ENTER NOT IF EXIST 2')
